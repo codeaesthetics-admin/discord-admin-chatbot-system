@@ -1,0 +1,148 @@
+import { Box, Container } from "@mui/material";
+import React, { useContext } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { polls } from "../../constants/data";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+// import { pollObjContext } from "../../helper/PollContext";
+import { PollContext } from "../../Context/PollContext";
+import { getVotesPerPoll } from "../APIRequests/PollAPIs";
+import CircularProgress from "@mui/material/CircularProgress";
+import Loader from "../Loader/Loader";
+const BarChartPolling = () => {
+  const [data, setData] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [loaderState, setLoaderState] = useState(false);
+  const { pollObj } = useContext(PollContext);
+  const [voteData, setVoteData] = useState("");
+  const [loading, setLoading] = useState(false);
+  const params = useParams();
+  console.log("id is: ", params);
+  let data1 = [
+    // { name: "Geeksforgeeks", students: 400 },
+    // { name: "Technical scripter", students: 700 },
+    // { name: "Geek-i-knack", students: 200 },
+    // { name: "Geek-o-mania", students: 1000 },
+  ];
+  let d = [];
+  // const bar = async () => {
+  //   // console.log(params.data, "This is the id of poll passed");
+  //   setLoading(true);
+  //   const votesInfo = await getVotesPerPoll(params.data && params.data);
+  //   setData(votesInfo);
+  //   if (data?.data?.options) {
+  //     setChartData(
+  //       data?.data?.options?.map((option) => ({
+  //         title: option.title,
+  //         voteCount: parseInt(option.option_vote_count), // Convert vote count to a number
+  //       }))
+  //     );
+  //   } else {
+  //     setLoaderState(true);
+  //   }
+
+  //   // const chartData = options.map(option => ({
+  //   //   title: option.title,
+  //   //   voteCount: parseInt(option.option_vote_count), // Convert vote count to a number
+  //   // }))
+  //   console.log(data, "chart");
+  //   console.log(data?.data.options[0].title, "Check this in bar chart");
+  //   console.log(
+  //     data.data.options[0].option_vote_count,
+  //     "Check this in bar chart"
+  //   );
+  //   console.log(chartData);
+  //   // const reqData = data.map((option) => ({
+  //   //   name: option.title,
+  //   //   votes: parseInt(option.option_vote_count), // Convert vote count to a number
+  //   // }));
+  //   // console.log("This is the data we need to show in chart: ", reqData);
+  //   setTimeout(() => {
+  //     console.log(data);
+  //   }, 5000);
+  //   setLoading(false);
+  // };
+
+  const bar = async () => {
+    setLoading(true); // Set loading state to true
+
+    // Fetch data from the server
+    const votesInfo = await getVotesPerPoll(params.data && params.data);
+    setData(votesInfo); // Update the state with the fetched data
+
+    // Check if data has options, if yes, set chart data
+    if (data?.data?.options) {
+      setChartData(
+        data?.data?.options?.map((option) => ({
+          title: option.title,
+          voteCount: parseInt(option.option_vote_count), // Convert vote count to a number
+        }))
+      );
+    } else {
+      setLoaderState(true); // Set loader state if data doesn't have options
+    }
+
+    // Logging statements and other operations
+
+    setLoading(false); // Set loading state to false
+  };
+
+  useEffect(() => {
+    bar();
+  }, []);
+  return (
+    <Container
+      maxWidth="md"
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        marginLeft: "25%",
+      }}
+    >
+      {loading ? (
+        <Loader /> // Render the loader when loading is true
+      ) : (
+        <div>
+          {data?.data?.options ? (
+            <ResponsiveContainer width="100%" height={300} aspect={1.2}>
+              <BarChart data={chartData}>
+                <Bar dataKey="voteCount" fill="green" />
+                <CartesianGrid stroke="#ccc" />
+                <XAxis dataKey="title" />
+                <YAxis />
+                <Tooltip />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p>No data available</p> // Handle the case when data is not available
+          )}
+        </div>
+      )}
+
+      {/* // {data?.data?.options ? (
+      //   <ResponsiveContainer width="50%" aspect={3}>
+      //     <BarChart data={chartData}>
+      //       <Bar dataKey="voteCount" fill="green" />
+      //       <CartesianGrid stroke="#ccc" />
+      //       <XAxis dataKey="title" />
+      //       <YAxis />
+      //       <Tooltip />
+      //     </BarChart>
+      //   </ResponsiveContainer>
+      // ) : (
+      //   <Loader />
+      // )} */}
+    </Container>
+  );
+};
+
+export default BarChartPolling;
